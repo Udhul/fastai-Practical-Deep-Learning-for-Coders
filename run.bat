@@ -69,7 +69,7 @@ if "%VIRTUAL_ENV%" == "" (
 )
 
 :: Install the required packages into the venv
-pip install -r requirements.txt -q --disable-pip-version-check
+pip install -r requirements.txt --q --disable-pip-version-check
 if %ERRORLEVEL% neq 0 (
     echo Error: Failed to install requirements.
     exit /b 1
@@ -79,8 +79,8 @@ if %ERRORLEVEL% neq 0 (
 :skip_venv
 
 :: Call run.py to set/check environment variables and launch the application
-python run.py
-if %ERRORLEVEL% neq 0 (
-    echo Error: run.py encountered an issue.
-    exit /b 1
-)
+@REM python run.py
+@REM if %ERRORLEVEL% neq 0 (
+@REM     echo Error: run.py encountered an issue.
+@REM     exit /b 1
+@REM )
