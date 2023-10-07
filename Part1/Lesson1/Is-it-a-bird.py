@@ -5,16 +5,47 @@ from fastai.vision.all import *
 import os
 
 # Updated DDG image search method
-def search_images(term, max_images=200): 
+def search_images(term, max_images=60, term_suffix:list=None):
+    '''term can be "bird"
+    max_images gives approx that amount total. Each variation will have max_images/len(combined_terms) amount of images. 
+    Therefore, max_images is subject to an int rounding error
+    term_suffix can be ["photo","light photo","shade photo"]
+    ''' 
+    variation_urls = []
     urls = []
-    # Using new DDG search method
-    with DDGS() as ddgs:
-        for r in ddgs.images(term, max_results=max_images): # Somehow returns 7 images total when max_images = 1 ..? 
-            urls.append(r['image']) # Append key='image' value from each dict in the list
-    return urls # Return the list of image urls
+
+    # Make seach term combinations. I.e. ["bird photo", "bird light photo", "bird shade photo"]
+    if term_suffix:
+        combined_terms = [term+' '+variation for variation in term_suffix]
+    else:
+        combined_terms = [term]
+
+    # Amount of images for each combination
+    variation_image_count = int(max_images/len(combined_terms))
+
+    # For each of the combined terms, get the urls
+    for term_variant in combined_terms:
+        # Using new DDG search method
+        with DDGS() as ddgs:
+            for r in ddgs.images(term_variant, max_results=variation_image_count):
+                 # Append key='image' value from each dict in the list
+                variation_urls.append(r['image'])
+        # Subindex to make sure no more than the defined amount is in the list
+        variation_urls = variation_urls[:variation_image_count]
+        # Add the variation urls to the parent list of urls for the search term
+        urls += variation_urls
+
+    # Remove any duplicate urls from the list. Could also use list(set()) but note it will mess up the order
+    unique_urls = []
+    for item in urls:
+        if item not in unique_urls:
+            unique_urls.append(item)
+
+    # Return the list of image urls
+    return urls
 
 
-def download_dataset(search_terms:list, images_per_term:int):
+def download_dataset(search_terms:list, images_per_term:int, term_suffix:list=None):
     '''Download the "search_terms" list of search terms.
     Get "images_per_term" for each term. 
     Put in folders named by each search term. 
@@ -24,7 +55,7 @@ def download_dataset(search_terms:list, images_per_term:int):
 
     # Create each of the search term key in the url dict and add the urls as a list in the corresponding values
     for term in search_terms:
-        urls[term] = search_images(term, max_images=images_per_term)[:images_per_term] # Subindex to make sure no more than the defined amount is in the list
+        urls[term] = search_images(term, max_images=images_per_term, term_suffix=term_suffix)
 
     # Place under same dir as this script and then in dataset
     base_dir = os.path.dirname(__file__) + '/dataset/'
@@ -60,14 +91,15 @@ def download_dataset(search_terms:list, images_per_term:int):
 # Main function
 def main():
     # Search terms
-    search_terms = ['bird photo', 
-                    'forest photo']
+    search_terms = ['bird', 'forest']
+
+    term_suffix = ['photo', 'bright photo', 'dark and shaded photo']
 
     # Images per search term
     images_per_term = 200
 
     # Run the function to download dataset. If already downloaded, this can be disabled
-    download_dataset(search_terms, images_per_term)
+    download_dataset(search_terms, images_per_term, term_suffix)
 
 # Run the main function when this script is executed directly
 if __name__ == "__main__":
