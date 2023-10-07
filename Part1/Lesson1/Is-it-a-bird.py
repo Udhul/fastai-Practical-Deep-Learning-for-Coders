@@ -99,7 +99,45 @@ def main():
     images_per_term = 200
 
     # Run the function to download dataset. If already downloaded, this can be disabled
-    download_dataset(search_terms, images_per_term, term_suffix)
+    cont = input("Proceed with downloading dataset (Y)?")
+    if cont.lower() == 'y': download_dataset(search_terms, images_per_term, term_suffix)
+
+    # Option to quit before finetune
+    cont = input("Proceed with finetuning (Y) or quit?")
+    if cont.lower() != 'y': quit()
+
+    # Dataset path
+    path = os.path.dirname(__file__) + '/dataset/'
+    # Get the images at Path
+    all_images = get_image_files(path)
+
+    # Make a list only with the thumbnails
+    all_thumbs = []
+    for image_path in all_images:
+        if 'thumb' in str(image_path): 
+            all_thumbs.append(image_path)
+    
+    # Unlink corrupted images
+    failed = verify_images(all_thumbs)
+    failed.map(Path.unlink)
+    # print(len(all_thumbs))
+    # print(len(failed))
+
+
+    dls = DataBlock(
+        blocks=(ImageBlock, CategoryBlock), 
+        get_items=get_image_files, 
+        splitter=RandomSplitter(valid_pct=0.2, seed=42),
+        get_y=parent_label,
+        item_tfms=[Resize(192, method='squish')]
+    ).dataloaders(path, bs=32)
+
+    learn = vision_learner(dls, resnet18, metrics=error_rate)
+    learn.fine_tune(3)
+
+    is_bird,_,probs = learn.predict(PILImage.create(os.path.dirname(__file__) + '/bird.jpg'))
+    print(f"This is a: {is_bird}.")
+    print(f"Probability it's a bird: {probs[0]:.4f}")
 
 # Run the main function when this script is executed directly
 if __name__ == "__main__":
