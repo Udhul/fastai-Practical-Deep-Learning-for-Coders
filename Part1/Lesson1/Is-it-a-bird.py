@@ -36,14 +36,24 @@ def download_dataset(search_terms:list, images_per_term:int):
             image_dest = f'{base_dir}/{term}/{count}.jpg'
             thumb_dest = f'{base_dir}/{term}/{count}_thumb.jpg'
 
-            # Download the images from the urls using the fastdownload library and place it in the defined destination
-            download_url(url, image_dest, timeout=5, show_progress=False)
+            # If the file is already there, just tick the counter and continue to next loop iteration
+            if os.path.isfile(thumb_dest): 
+                count+=1
+                continue
 
-            # Convert to thumb
-            im = Image.open(image_dest)
-            im.to_thumb(256,256).save(thumb_dest)
+            try:
+                # Download the images from the urls using the fastdownload library and place it in the defined destination
+                print(f'Getting "{term}" image {count}')
+                download_url(url, image_dest, show_progress=False)
 
-            # Append the img conter
+                # Convert to thumb
+                im = Image.open(image_dest)
+                im.to_thumb(256,256).save(thumb_dest)
+            # Handle errors so the program doesn't crash if some images fail to download
+            except:
+                print(f'The "{term}" url failed: {url}')
+
+            # Tick the img conter
             count+=1
 
 # Main function
