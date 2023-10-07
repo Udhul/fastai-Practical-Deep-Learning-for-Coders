@@ -7,6 +7,7 @@ import os
 # Updated DDG image search method
 def search_images(term, max_images=200): 
     urls = []
+    # Using new DDG search method
     with DDGS() as ddgs:
         for r in ddgs.images(term, max_results=max_images): # Somehow returns 7 images total when max_images = 1 ..? 
             urls.append(r['image']) # Append key='image' value from each dict in the list
@@ -25,8 +26,8 @@ def download_dataset(search_terms:list, images_per_term:int):
     for term in search_terms:
         urls[term] = search_images(term, max_images=images_per_term)[:images_per_term] # Subindex to make sure no more than the defined amount is in the list
 
-    # Place under same dir as this script
-    base_dir = os.path.dirname(__file__) + '/'
+    # Place under same dir as this script and then in dataset
+    base_dir = os.path.dirname(__file__) + '/dataset/'
 
     # Download the images for each search term. Then make a copy converted to thumb
     for term in urls:
