@@ -104,7 +104,7 @@ def main():
 
     # Option to quit before finetune
     cont = input("Proceed with finetuning (Y) or quit?")
-    if cont.lower() != 'y': quit()
+    if cont.lower() != 'y': return
 
     # Dataset path
     path = os.path.dirname(__file__) + '/dataset/'
