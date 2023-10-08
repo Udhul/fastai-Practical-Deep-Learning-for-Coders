@@ -45,11 +45,12 @@ def search_images(term, max_images=60, term_suffix:list=None):
     return urls
 
 
-def download_dataset(search_terms:list, images_per_term:int, term_suffix:list=None):
+def download_dataset(search_terms:list, images_per_term:int, term_suffix:list=None, dataset_path:str='dataset'):
     '''Download the "search_terms" list of search terms.
     Get "images_per_term" for each term. 
     Put in folders named by each search term. 
-    Make thumbnails named with _thumb for each image.'''
+    Make thumbnails named with _thumb for each image.
+    dataset_path: Full path for the dataset folder'''
     # Prepare a dict with search terms
     urls = {}
 
@@ -57,16 +58,13 @@ def download_dataset(search_terms:list, images_per_term:int, term_suffix:list=No
     for term in search_terms:
         urls[term] = search_images(term, max_images=images_per_term, term_suffix=term_suffix)
 
-    # Place under same dir as this script and then in dataset
-    base_dir = os.path.dirname(__file__) + '/dataset/'
-
     # Download the images for each search term. Then make a copy converted to thumb
     for term in urls:
         count = 0
         for url in urls[term]:
             # Name directories and img file
-            image_dest = f'{base_dir}/{term}/{count}.jpg'
-            thumb_dest = f'{base_dir}/{term}/{count}_thumb.jpg'
+            image_dest = f'{dataset_path}/{term}/{count}.jpg'
+            thumb_dest = f'{dataset_path}/{term}/{count}_thumb.jpg'
 
             # If the file is already there, just tick the counter and continue to next loop iteration
             if os.path.isfile(thumb_dest): 
@@ -98,20 +96,22 @@ def main():
     # Images per search term
     images_per_term = 200
 
+    # Dataset path. Place under same dir as this script and then in dataset
+    path = os.path.dirname(__file__) + '/bird_dataset/'
+
     # Run the function to download dataset. If already downloaded, this can be disabled
-    cont = input("Proceed with downloading dataset (Y)?")
-    if cont.lower() == 'y': download_dataset(search_terms, images_per_term, term_suffix)
+    cont = input("Proceed with downloading dataset (Y)? ")
+    if cont.lower() == 'y': download_dataset(search_terms, images_per_term, term_suffix, path)
 
     # Option to quit before finetune
-    cont = input("Proceed with finetuning (Y) or quit?")
+    cont = input("Proceed with finetuning (Y) or quit? ")
     if cont.lower() != 'y': return
 
-    # Dataset path
-    path = os.path.dirname(__file__) + '/dataset/'
     # Get the images at Path
     all_images = get_image_files(path)
 
-    # Make a list only with the thumbnails
+    # --------------
+    # Make a list only with the thumbnails. Can be used to sort out thumbs only. But that is not specifically implemented here.
     all_thumbs = []
     for image_path in all_images:
         if 'thumb' in str(image_path): 
@@ -122,8 +122,10 @@ def main():
     failed.map(Path.unlink)
     # print(len(all_thumbs))
     # print(len(failed))
+    # --------------
 
 
+    # Prepare dataloader
     dls = DataBlock(
         blocks=(ImageBlock, CategoryBlock), 
         get_items=get_image_files, 
@@ -135,7 +137,7 @@ def main():
     learn = vision_learner(dls, resnet18, metrics=error_rate)
     learn.fine_tune(3)
 
-    is_bird,_,probs = learn.predict(PILImage.create(os.path.dirname(__file__) + '/bird.jpg'))
+    is_bird,_,probs = learn.predict(PILImage.create(os.path.dirname(__file__) + '/photo1.jpg'))
     print(f"This is a: {is_bird}.")
     print(f"Probability it's a bird: {probs[0]:.4f}")
 
