@@ -1,2 +1,5 @@
 fastai
+ipywidgets
+nbdev
+gradio
 duckduckgo_search
