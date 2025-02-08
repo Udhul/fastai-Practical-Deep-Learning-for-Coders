@@ -2,4 +2,4 @@ fastai
 ipywidgets
 nbdev
 gradio
-duckduckgo_search
+duckduckgo-search==7.3.1
