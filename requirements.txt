@@ -3,3 +3,4 @@ ipywidgets
 nbdev
 gradio
 duckduckgo-search==7.3.1
+timmn
