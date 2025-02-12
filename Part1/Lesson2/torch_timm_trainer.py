@@ -16,7 +16,7 @@ class TrainingConfig:
     model_name: str = 'resnet18'
     batch_size: int = 32
     num_epochs: int = 5
-    learning_rate: float = 0.001
+    learning_rate: float = 0.0001 # 0.00005
     image_size: Tuple[int, int] = (224, 224)
     num_workers: int = 4
 
@@ -139,7 +139,7 @@ class ModelTrainer:
                                      num_classes=len(self.train_dataset.classes))
         self.model.to(self.device)
         self.criterion = nn.CrossEntropyLoss()
-        self.optimizer = optim.Adam(self.model.parameters(), lr=self.config.learning_rate)
+        self.optimizer = optim.AdamW(self.model.parameters(), lr=self.config.learning_rate)
 
     def add_callback(self, callback: TrainingCallback):
         self.callbacks.append(callback)
