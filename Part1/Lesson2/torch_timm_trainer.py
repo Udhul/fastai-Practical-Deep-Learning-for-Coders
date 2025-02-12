@@ -239,5 +239,9 @@ def main():
     accuracy = trainer.validate()
     print(f"Validation Accuracy: {accuracy:.2f}%")
 
+    # Release device memory
+    torch.cuda.empty_cache()
+    torch.cuda.ipc_collect()
+
 if __name__ == '__main__':
     main()
