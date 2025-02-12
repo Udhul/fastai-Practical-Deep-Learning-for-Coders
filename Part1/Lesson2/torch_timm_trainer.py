@@ -10,6 +10,8 @@ import shutil
 from sklearn.model_selection import train_test_split
 from typing import Tuple, Callable
 from dataclasses import dataclass
+from tqdm.auto import tqdm
+import time
 
 @dataclass
 class TrainingConfig:
@@ -206,15 +208,46 @@ class ModelTrainer:
 
         return 100 * correct / total
 
-class PrintCallback(TrainingCallback):
-    def on_batch_end(self, trainer: ModelTrainer, epoch: int, batch: int, loss: float):
-        if (batch + 1) % 10 == 0:
-            print(f"Epoch [{epoch+1}/{trainer.config.num_epochs}], "
-                  f"Step [{batch+1}/{len(trainer.train_loader)}], Loss: {loss:.4f}")
+# class PrintCallback(TrainingCallback):
+#     def on_batch_end(self, trainer: ModelTrainer, epoch: int, batch: int, loss: float):
+#         if (batch + 1) % 10 == 0:
+#             print(f"Epoch [{epoch+1}/{trainer.config.num_epochs}], "
+#                   f"Step [{batch+1}/{len(trainer.train_loader)}], Loss: {loss:.4f}")
     
+#     def on_epoch_end(self, trainer: ModelTrainer, epoch: int, avg_loss: float):
+#         print(f"Epoch [{epoch+1}/{trainer.config.num_epochs}] completed, "
+#               f"Average Loss: {avg_loss:.4f}")
+
+class ProgressCallback(TrainingCallback):
+    def on_training_start(self, trainer: ModelTrainer):
+        print("\nTraining Started")
+        print("-" * 80)
+        
+    def on_epoch_start(self, trainer: ModelTrainer, epoch: int):
+        self.batch_bar = tqdm(total=len(trainer.train_loader), 
+                            desc=f'Epoch {epoch+1}/{trainer.config.num_epochs}', 
+                            leave=False, unit='batch')
+        self.epoch_start_time = time.time()
+        self.running_loss = 0
+        
+    def on_batch_end(self, trainer: ModelTrainer, epoch: int, batch: int, loss: float):
+        self.running_loss = 0.9 * self.running_loss + 0.1 * loss
+        self.batch_bar.update()
+        
     def on_epoch_end(self, trainer: ModelTrainer, epoch: int, avg_loss: float):
-        print(f"Epoch [{epoch+1}/{trainer.config.num_epochs}] completed, "
-              f"Average Loss: {avg_loss:.4f}")
+        accuracy = trainer.validate()
+        self.batch_bar.close()
+        
+        epoch_time = time.time() - self.epoch_start_time
+        iterations_per_sec = len(trainer.train_loader) / epoch_time
+        
+        epoch_width = len(str(trainer.config.num_epochs))
+        print(f"Epoch {epoch+1:>{epoch_width}d}/{trainer.config.num_epochs} | "
+              f"Loss: {avg_loss:.4f} | "
+              f"Val Acc: {accuracy:>6.2f}% | "
+              f"Time: {epoch_time:>5.1f}s | "
+              f"It/s: {iterations_per_sec:>4.1f} | "
+              f"Best Loss: {trainer.best_loss:.4f}")
 
 def main():
     # Setup paths and configuration
@@ -230,7 +263,7 @@ def main():
     trainer = ModelTrainer(config)
     trainer.setup_data(train_path, valid_path)
     trainer.setup_model()
-    trainer.add_callback(PrintCallback())
+    trainer.add_callback(ProgressCallback())
 
     # Train model
     trainer.train()
