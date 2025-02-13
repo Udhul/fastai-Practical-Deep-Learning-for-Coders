@@ -96,8 +96,8 @@ def main():
     # Images per search term
     images_per_term = 200
 
-    # Dataset path. Place under same dir as this script and then in dataset
-    path = os.path.dirname(__file__) + '/bird_dataset/'
+    # Dataset path.
+    path = "datasets//bird_dataset//"
 
     # Run the function to download dataset. If already downloaded, this can be disabled
     cont = input("Proceed with downloading dataset (Y)? ")

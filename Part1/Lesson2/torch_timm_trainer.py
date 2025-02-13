@@ -251,7 +251,7 @@ class ProgressCallback(TrainingCallback):
 
 def main():
     # Setup paths and configuration
-    dataset_root = Path(r"Part1\Lesson1\bird_dataset")
+    dataset_root = Path(r"datasets\bird_dataset")
     dataset_dest = Path(r"datasets\bird_dataset_split")
     config = TrainingConfig()
 
