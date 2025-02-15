@@ -1,6 +1,11 @@
 fastai
+numpy
+pandas
 ipywidgets
 nbdev
 gradio
 duckduckgo-search==7.3.1
-timmn
+timm
+
+# Tests
+gymnasium # For RL simulations
