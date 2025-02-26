@@ -5,18 +5,15 @@ torchvision
 torchaudio
 
 fastai # Includes torch, but else install torch, torchvision, torchaudio with cuda build through a manual command
-numpy
-pandas
-duckduckgo-search==7.3.1
 
 # UI
 nbdev
 ipywidgets
 gradio
 PySide6
+tqdm # Console progress
 
 # HF General
-datasets[audio,vision]
 transformers
 diffusers
 accelerate
@@ -27,6 +24,15 @@ bitsandbytes
 timm
 tokenizers
 peft
+
+# Dataset collection, data processing, conversion
+numpy
+pandas
+duckduckgo-search==7.3.1
+datasets[audio,vision] # HF
+beautifulsoup4
+PyMuPDF
+tabula-py
 
 # Embeddings
 sentence-transformers
